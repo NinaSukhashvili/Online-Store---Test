@@ -1,0 +1,11 @@
+{% extends 'books/base.html' %}
+{% block title %}გვერდი ვერ მოიძებნა | წიგნიერი{% endblock %}
+{% block content %}
+    <main class="container page">
+        <div class="empty-state">
+            <h3>გვერდი ვერ მოიძებნა</h3>
+            <p>მისამართი შეიძლება არასწორია ან გვერდი წაშლილია.</p>
+            <p><a href="{% url 'books:home' %}" class="primary-button">მთავარ გვერდზე დაბრუნება</a></p>
+        </div>
+    </main>
+{% endblock %}

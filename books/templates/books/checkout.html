@@ -1,0 +1,56 @@
+{% extends 'books/base.html' %}
+
+{% block title %}შეკვეთის გაფორმება | წიგნიერი{% endblock %}
+
+{% block content %}
+<main class="container page">
+    <h1>შეკვეთის გაფორმება</h1>
+
+    <section class="checkout-items">
+        <h2>შენი კალათა</h2>
+        {% for item in items %}
+            <div class="checkout-item">
+                <h3>{{ item.offer.book.title }}</h3>
+                <p>ფორმატი: {% if item.offer.is_digital %}ელექტრონული წიგნი{% else %}ფიზიკური წიგნი{% endif %}</p>
+                <p>რაოდენობა: {{ item.quantity }}</p>
+                <p>ფასი: {{ item.total_price }} ₾</p>
+            </div>
+        {% endfor %}
+        <p><strong>ჯამი: {{ total }} ₾</strong></p>
+    </section>
+
+    <section class="checkout-form">
+        <h2>მომხმარებლის ინფორმაცია</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.full_name.label_tag }}
+                {{ form.full_name }}
+                {{ form.full_name.errors }}
+            </div>
+            <div class="form-group">
+                {{ form.phone.label_tag }}
+                {{ form.phone }}
+                {{ form.phone.errors }}
+            </div>
+            {% if needs_address %}
+                <div class="form-group">
+                    {{ form.shipping_address.label_tag }}
+                    {{ form.shipping_address }}
+                    {{ form.shipping_address.errors }}
+                </div>
+            {% endif %}
+
+            <hr>
+            <h3>💳 საბანკო ბარათით გადახდა</h3>
+            <p>სატესტო რეჟიმი — რეალური თანხა არ ჩამოიჭრება.</p>
+            <div class="form-group">
+                <label for="card_number">ბარათის ნომერი <span class="required-star">*</span></label>
+                <input type="text" id="card_number" name="card_number" inputmode="numeric" autocomplete="off" placeholder="4242 4242 4242 4242" maxlength="19" required>
+                {% if card_error %}<p class="error">{{ card_error }}</p>{% endif %}
+            </div>
+            <button type="submit" class="btn">გადახდა და შეკვეთის დადასტურება</button>
+        </form>
+    </section>
+</main>
+{% endblock %}

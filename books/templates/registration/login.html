@@ -1,0 +1,15 @@
+{% extends 'books/base.html' %}
+{% block title %}შესვლა | წიგნიერი{% endblock %}
+
+{% block content %}
+    <main class="container page narrow">
+        <h1 class="page-title">შესვლა</h1>
+        <form method="post" class="form-card">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="primary-button">შესვლა</button>
+        </form>
+        <p class="muted">ანგარიში არ გაქვთ? <a href="{% url 'books:register' %}">დარეგისტრირდით</a></p>
+    </main>
+{% endblock %}

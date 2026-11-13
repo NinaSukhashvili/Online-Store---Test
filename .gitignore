@@ -1,0 +1,31 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ვირტუალური გარემო
+venv/
+.venv/
+
+# საიდუმლო პარამეტრები
+.env
+.env.*
+
+# Django მონაცემთა ბაზა
+db.sqlite3
+db.sqlite3-journal
+
+# ლოგები
+*.log
+
+# ელექტრონული წიგნები
+media/books/ebooks/
+demo_files/
+
+# შემთხვევითი ფაილები
+341/
+
+# ოპერაციული სისტემა
+.DS_Store
+Thumbs.db

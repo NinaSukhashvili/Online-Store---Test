@@ -1,0 +1,17 @@
+{% extends 'books/base.html' %}
+{% block title %}პროფილი | წიგნიერი{% endblock %}
+
+{% block content %}
+    <main class="container page narrow">
+        <h1 class="page-title">ჩემი პროფილი</h1>
+        <p class="muted">მომხმარებელი: <strong>{{ user.username }}</strong> · შეკვეთები: <a href="{% url 'books:order_list' %}">{{ orders_count }}</a></p>
+
+        <form method="post" class="form-card">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <button type="submit" class="primary-button">შენახვა</button>
+        </form>
+
+        <p><a href="{% url 'books:password_change' %}" class="details-link">პაროლის შეცვლა →</a></p>
+    </main>
+{% endblock %}

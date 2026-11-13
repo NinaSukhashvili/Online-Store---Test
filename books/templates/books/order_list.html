@@ -1,0 +1,33 @@
+{% extends 'books/base.html' %}
+{% block title %}ჩემი შეკვეთები | წიგნიერი{% endblock %}
+
+{% block content %}
+    <main class="container page">
+        <h1 class="page-title">ჩემი შეკვეთები</h1>
+
+        {% if orders %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>№</th><th>თარიღი</th><th>წიგნები</th><th>სტატუსი</th><th>გადახდა</th><th>თანხა</th></tr></thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr>
+                                <td><a href="{% url 'books:order_detail' order.id %}">#{{ order.id }}</a></td>
+                                <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>{% for item in order.items.all %}{{ item.book_title }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                                <td>{{ order.get_status_display }}</td>
+                                <td>{{ order.get_payment_status_display }}</td>
+                                <td><strong>{{ order.total_amount }} ₾</strong></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>შეკვეთები ჯერ არ გაქვთ</h3>
+                <p><a href="{% url 'books:book_list' %}" class="primary-button">კატალოგის დათვალიერება</a></p>
+            </div>
+        {% endif %}
+    </main>
+{% endblock %}

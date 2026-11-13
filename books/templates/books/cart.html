@@ -1,0 +1,139 @@
+
+{% extends 'books/base.html' %}
+{% block title %}კალათა | წიგნიერი{% endblock %}
+
+{% block content %}
+<main class="container page">
+
+    <h1 class="page-title">კალათა</h1>
+
+    {% if items %}
+        <div class="table-wrap">
+            <table class="data-table">
+
+                <thead>
+                    <tr>
+                        <th>წიგნი</th>
+                        <th>გამყიდველი / ფორმატი</th>
+                        <th>ფასი</th>
+                        <th>რაოდენობა</th>
+                        <th>ჯამი</th>
+                        <th>მოქმედებები</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+
+                        <td>
+                            <a href="{% url 'books:book_detail' item.offer.book_id %}">
+                                {{ item.offer.book.title }}
+                            </a>
+                        </td>
+
+                        <td>
+                            {{ item.offer.seller.name|default:"წიგნიერი" }}
+                            <br>
+                            <small>{{ item.offer.get_format_display }}</small>
+                        </td>
+
+                        <td>{{ item.offer.price }} ₾</td>
+
+                        <td>
+                            {% if item.offer.is_physical %}
+                                <form method="post"
+                                      action="{% url 'books:cart_update' item.id %}"
+                                      class="add-form">
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="number"
+                                        name="quantity"
+                                        value="{{ item.quantity }}"
+                                        min="1"
+                                        max="{{ item.offer.stock }}"
+                                        aria-label="რაოდენობა"
+                                    >
+
+                                    <button type="submit" class="secondary-button">
+                                        განახლება
+                                    </button>
+                                </form>
+                            {% else %}
+                                1
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <strong>{{ item.total_price }} ₾</strong>
+                        </td>
+
+                        <td>
+                            <div class="cart-actions">
+
+                                <form method="post"
+                                      action="{% url 'books:checkout_item' item.id %}">
+
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="primary-button">
+                                        შეძენა
+                                    </button>
+                                </form>
+
+                                <form method="post"
+                                      action="{% url 'books:cart_remove' item.id %}"
+                                      class="inline-form">
+
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="link-button danger">
+                                        წაშლა
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="summary-bar">
+
+            <p>
+                სულ:
+                <strong>{{ total }} ₾</strong>
+            </p>
+
+            <a href="{% url 'books:checkout' %}" class="primary-button">
+                მთლიანი კალათის შეძენა
+            </a>
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            <h3>კალათა ცარიელია</h3>
+
+            <p>
+                დაათვალიერეთ კატალოგი და დაამატეთ საყვარელი წიგნები.
+            </p>
+
+            <p>
+                <a href="{% url 'books:book_list' %}" class="primary-button">
+                    კატალოგში გადასვლა
+                </a>
+            </p>
+        </div>
+
+    {% endif %}
+
+</main>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'books/base.html' %}
+{% block title %}რეგისტრაცია | წიგნიერი{% endblock %}
+
+{% block content %}
+    <main class="container page narrow">
+        <h1 class="page-title">რეგისტრაცია</h1>
+        <form method="post" class="form-card">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <button type="submit" class="primary-button">ანგარიშის შექმნა</button>
+        </form>
+        <p class="muted">უკვე გაქვთ ანგარიში? <a href="{% url 'books:login' %}">შედით</a></p>
+    </main>
+{% endblock %}

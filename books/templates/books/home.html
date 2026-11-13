@@ -1,0 +1,69 @@
+{% extends 'books/base.html' %}
+
+{% block content %}
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <span class="eyebrow">წიგნები, რომლებიც გვაერთიანებს</span>
+                <h1>იპოვე შენი<br><span>შემდეგი ისტორია</span></h1>
+                <p>
+                    აღმოაჩინე საინტერესო წიგნები, შეარჩიე საყვარელი ჟანრი
+                    და მიეცი საკუთარ თავს ახალი სამყაროს აღმოჩენის შესაძლებლობა
+                </p>
+                <a href="{% url 'books:book_list' %}" class="primary-button">წიგნების დათვალიერება</a>
+            </div>
+
+            <div class="hero-decoration">
+                <div class="decorative-book book-one"><span>წიგნიერი</span></div>
+                <div class="decorative-book book-two"><span>ახალი<br>ისტორიები</span></div>
+                <div class="decorative-book book-three"><span>შენი<br>სამყარო</span></div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container catalog" id="catalog">
+
+        <form method="get" action="{% url 'books:book_list' %}" class="search-form">
+            <input type="text" name="q" placeholder="მოძებნე წიგნი ან ავტორი..." aria-label="ძიება">
+            <button type="submit">ძიება</button>
+        </form>
+
+        {% if categories %}
+            <div class="chips">
+                {% for category in categories %}
+                    <a href="{% url 'books:book_list' %}?category={{ category.id }}" class="chip">{{ category.name }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">ახალი დამატებული</span>
+                <h2>ახალი წიგნები</h2>
+            </div>
+            <a href="{% url 'books:book_list' %}" class="details-link">ყველა წიგნი →</a>
+        </div>
+
+        {% if books %}
+            <div class="book-grid">
+                {% for book in books %}{% include 'books/_book_card.html' %}{% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>წიგნები მალე გამოჩნდება</h3>
+                <p>ამ ეტაპზე კატალოგში წიგნები არ არის დამატებული. მალე აქ საინტერესო არჩევანი დაგხვდება</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <section class="about-section" id="about">
+        <div class="container about-content">
+            <span class="eyebrow">ჩვენ შესახებ</span>
+            <h2>ყოველი წიგნი ახალი სამყაროს დასაწყისია</h2>
+            <p>
+                „წიგნიერი“ არის სივრცე მათთვის, ვისაც კითხვა,
+                აღმოჩენა და ახალი ცოდნის მიღება უყვარს
+            </p>
+        </div>
+    </section>
+{% endblock %}

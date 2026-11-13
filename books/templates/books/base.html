@@ -1,0 +1,84 @@
+{% load static %}<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}წიგნიერი — ქართული ონლაინ წიგნების მაღაზია აღმოაჩინე შენი შემდეგი საყვარელი წიგნი{% endblock %}">
+    <title>{% block title %}წიგნიერი| ონლაინ წიგნების მაღაზია{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'books/style.css' %}">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container navigation">
+
+            <a href="{% url 'books:home' %}" class="logo">წიგნიერი</a>
+
+            <nav class="nav-links">
+                <a href="{% url 'books:home' %}">მთავარი</a>
+                <a href="{% url 'books:book_list' %}">წიგნები</a>
+                <a href="{% url 'books:home' %}#about">ჩვენ შესახებ</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="{% url 'books:cart' %}" class="icon-link" aria-label="კალათა" title="კალათა">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+                    {% if cart_count %}<span class="icon-badge">{{ cart_count }}</span>{% endif %}
+                    <span class="icon-caption">კალათა</span>
+                </a>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'books:profile' %}" class="icon-link" aria-label="პროფილი" title="პროფილი">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>
+                        <span class="icon-caption">პროფილი</span>
+                    </a>
+                    <a href="{% url 'books:order_list' %}" class="icon-link" aria-label="ჩემი შეკვეთები" title="ჩემი შეკვეთები">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16l-1 14H5L4 7Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+                        <span class="icon-caption">შეკვეთები</span>
+                    </a>
+                    
+                    {% if user.is_staff %}
+                    <a href="/admin/" class="icon-link admin-link" title="ადმინისტრირება">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 6.5C9.5 4.8 6.5 4.5 3 5.5v13c3.5-1 6.5-.7 9 1 2.5-1.7 5.5-2 9-1v-13c-3.5-1-6.5-.7-9 1Z"/>
+                            <path d="M12 6.5v13"/>
+                        </svg>
+                        <span class="icon-caption">ადმინი</span>
+                    </a>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'books:logout' %}" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button">გასვლა</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'books:login' %}" class="icon-link" title="შესვლა">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>
+                        <span class="icon-caption">შესვლა</span>
+                    </a>
+                    <a href="{% url 'books:register' %}" class="register-link">რეგისტრაცია</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </header>
+
+    {% if messages %}
+        <div class="container messages">
+            {% for message in messages %}
+                <div class="message message-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <a href="{% url 'books:home' %}" class="logo">წიგნიერი</a>
+            <p>© 2026 წიგნიერი ყველა უფლება დაცულია.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+<article class="book-card">
+    <a href="{% url 'books:book_detail' book.id %}" class="book-cover">
+        {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }} — წიგნის ყდა">
+        {% else %}
+            <div class="cover-decoration {% if book.id|divisibleby:5 %}cover-tone-5{% elif book.id|divisibleby:4 %}cover-tone-4{% elif book.id|divisibleby:3 %}cover-tone-3{% elif book.id|divisibleby:2 %}cover-tone-2{% else %}cover-tone-1{% endif %}">
+                <span class="cover-brand">წიგნიერი</span>
+                <h3>{{ book.title }}</h3>
+                <span class="cover-line"></span>
+                <p>{% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% empty %}ავტორი უცნობია{% endfor %}</p>
+            </div>
+        {% endif %}
+    </a>
+
+    <div class="book-info">
+        <h3><a href="{% url 'books:book_detail' book.id %}">{{ book.title }}</a></h3>
+        <p class="book-author">{% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% empty %}ავტორი უცნობია{% endfor %}</p>
+        <div class="book-price">
+            <span>{{ book.min_price }} ₾<small> -დან</small></span>
+            <small>{% for offer in book.purchasable_offers %}{{ offer.get_format_display }}{% if not forloop.last %} · {% endif %}{% endfor %}</small>
+        </div>
+        <a href="{% url 'books:book_detail' book.id %}" class="details-link">წიგნის ნახვა →</a>
+    </div>
+</article>

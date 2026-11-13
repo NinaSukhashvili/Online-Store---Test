@@ -1,0 +1,75 @@
+{% extends 'books/base.html' %}
+
+{% block title %}წიგნების კატალოგი | წიგნიერი{% endblock %}
+
+{% block content %}
+    <main class="container catalog" id="catalog">
+
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">აღმოაჩინე და შეარჩიე</span>
+                <h2>{% if selected_category %}{{ selected_category.name }}{% else %}ჩვენი წიგნები{% endif %}</h2>
+            </div>
+            <p>ნაპოვნია: {{ page_obj.paginator.count }}</p>
+        </div>
+
+        <form method="get" action="{% url 'books:book_list' %}" class="filter-form">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="წიგნი ან ავტორი..." aria-label="ძიება">
+
+            <select name="category" aria-label="კატეგორია">
+                <option value="">ყველა კატეგორია</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if selected_category and selected_category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="format" aria-label="ფორმატი">
+                <option value="">ყველა ფორმატი</option>
+                {% for value, label in formats %}
+                    <option value="{{ value }}" {% if selected_format == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="number" name="min_price" min="0" step="0.01" value="{{ min_price }}" placeholder="ფასი დან" aria-label="მინიმალური ფასი">
+            <input type="number" name="max_price" min="0" step="0.01" value="{{ max_price }}" placeholder="ფასი მდე" aria-label="მაქსიმალური ფასი">
+
+            <select name="sort" aria-label="დალაგება">
+                {% for key, label in sort_options %}
+                    <option value="{{ key }}" {% if sort == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">გაფილტვრა</button>
+            <a href="{% url 'books:book_list' %}" class="reset-link">გასუფთავება</a>
+        </form>
+
+        {% if books %}
+            <div class="book-grid">
+                {% for book in books %}{% include 'books/_book_card.html' %}{% endfor %}
+            </div>
+
+            {% if page_obj.has_other_pages %}
+                <nav class="pagination" aria-label="გვერდები">
+                    {% if page_obj.has_previous %}
+                        <a href="{% querystring page=page_obj.previous_page_number %}">← წინა</a>
+                    {% endif %}
+                    <span>გვერდი {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="{% querystring page=page_obj.next_page_number %}">შემდეგი →</a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <h3>წიგნები ვერ მოიძებნა</h3>
+                <p>
+                    {% if search_query or selected_category or selected_format or min_price or max_price %}
+                        თქვენი პირობების შესაბამისი წიგნი ვერ მოიძებნა. სცადეთ სხვა ძიება ან გააუქმეთ ფილტრები.
+                    {% else %}
+                        ამ ეტაპზე კატალოგში წიგნები არ არის დამატებული.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </main>
+{% endblock %}

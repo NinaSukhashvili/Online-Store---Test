@@ -1,0 +1,30 @@
+{% extends 'books/base.html' %}
+
+{% block title %}შეკვეთა #{{ order.id }} | წიგნიერი{% endblock %}
+
+{% block content %}
+<main class="container page">
+    <section class="order-confirmation">
+        <h1>შეკვეთა დადასტურებულია!</h1>
+        <p>სატესტო გადახდა წარმატებით დასრულდა.</p>
+        <p>შეკვეთის ნომერი: <strong>#{{ order.id }}</strong></p>
+    </section>
+
+    {% for item in order.items.all %}
+        {% if item.format == 'digital' %}
+            <section class="checkout-item">
+                <h2>{{ item.book_title }}</h2>
+                <p>ელექტრონული წიგნი</p>
+                {% if item.offer.ebook_file and order.payment_status == 'paid' and order.status != 'cancelled' %}
+                    <a class="download-link btn" href="{% url 'books:download_ebook' item.id %}">PDF-ის ჩამოტვირთვა</a>
+                {% else %}
+                    <p class="error">PDF ფაილი ამჟამად მიუწვდომელია.</p>
+                {% endif %}
+            </section>
+        {% endif %}
+    {% endfor %}
+
+    <p><a href="{% url 'books:order_list' %}">ჩემი შეკვეთები</a></p>
+    <p><a href="{% url 'books:book_list' %}">წიგნების კატალოგში დაბრუნება</a></p>
+</main>
+{% endblock %}
