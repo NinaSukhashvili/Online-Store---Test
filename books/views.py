@@ -7,15 +7,16 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Exists, Min, OuterRef, Prefetch, Q
+from django.db.models import Avg, Count, Exists, Min, OuterRef, Prefetch, Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import CheckoutForm, ProfileForm, RegisterForm
+from .forms import BookReviewForm, CheckoutForm, ProfileForm, RegisterForm
 from .models import (
     Book,
     BookOffer,
+    BookReview,
     Cart,
     CartItem,
     Category,
@@ -193,11 +194,102 @@ def book_detail(request, book_id):
 
     cheapest_id = purchasable[0].id if purchasable else None
 
+    reviews = book.reviews.select_related('user').all()
+    user_review = None
+
+    if request.user.is_authenticated:
+        user_review = reviews.filter(user=request.user).first()
+
+    rating_data = reviews.aggregate(
+        average_rating=Avg('rating'),
+        rating_count=Count('rating'),
+    )
+
+    review_form = BookReviewForm(instance=user_review)
+
     return render(request, 'books/book_detail.html', {
         'book': book,
         'offers': offers,
         'cheapest_id': cheapest_id,
+        'reviews': reviews,
+        'user_review': user_review,
+        'review_form': review_form,
+        'average_rating': rating_data['average_rating'],
+        'rating_count': rating_data['rating_count'],
     })
+
+
+@login_required
+@require_POST
+def book_review_save(request, book_id):
+    book = get_object_or_404(Book, pk=book_id)
+
+    review = BookReview.objects.filter(
+        book=book,
+        user=request.user,
+    ).first()
+
+    form = BookReviewForm(request.POST, instance=review)
+
+    if form.is_valid():
+        rating = form.cleaned_data.get('rating')
+        comment = (form.cleaned_data.get('comment') or '').strip()
+
+        # ორივე ველი ცარიელია: არსებული ჩანაწერი იშლება,
+        # ხოლო ახალი ცარიელი ჩანაწერი არ იქმნება.
+        if rating is None and not comment:
+            if review:
+                review.delete()
+                messages.success(
+                    request,
+                    'თქვენი შეფასება და კომენტარი წაიშალა.'
+                )
+            else:
+                messages.info(
+                    request,
+                    'შეფასება ან კომენტარი არ დაგიტოვებიათ.'
+                )
+        else:
+            saved_review = form.save(commit=False)
+            saved_review.book = book
+            saved_review.user = request.user
+            saved_review.comment = comment
+            saved_review.save()
+
+            messages.success(
+                request,
+                'თქვენი შეფასება და კომენტარი შენახულია.'
+            )
+    else:
+        messages.error(
+            request,
+            'შეფასების ან კომენტარის ფორმაში შეცდომაა.'
+        )
+
+    return redirect('books:book_detail', book_id=book.pk)
+
+
+@login_required
+@require_POST
+def book_review_delete(request, review_id):
+    review = get_object_or_404(
+        BookReview.objects.select_related('book'),
+        pk=review_id,
+    )
+
+    if review.user_id != request.user.pk and not request.user.is_staff:
+        messages.error(
+            request,
+            'ამ კომენტარის წაშლის უფლება არ გაქვთ.'
+        )
+        return redirect('books:book_detail', book_id=review.book_id)
+
+    book_id = review.book_id
+    review.delete()
+
+    messages.success(request, 'შეფასება და კომენტარი წაიშალა.')
+
+    return redirect('books:book_detail', book_id=book_id)
 
 
 # რეგისტრაცია

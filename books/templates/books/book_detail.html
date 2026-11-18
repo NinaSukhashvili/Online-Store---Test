@@ -1,109 +1,251 @@
+
 {% extends 'books/base.html' %}
 
 {% block title %}{{ book.title }} | წიგნიერი{% endblock %}
 {% block meta_description %}{{ book.title }} — {% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}. წიგნიერი.{% endblock %}
 
 {% block content %}
-    <main class="container detail">
+<main class="container detail">
 
-        <p class="breadcrumbs"><a href="{% url 'books:book_list' %}">← კატალოგში დაბრუნება</a></p>
+    <p class="breadcrumbs">
+        <a href="{% url 'books:book_list' %}">← კატალოგში დაბრუნება</a>
+    </p>
 
-        <div class="detail-layout">
+    <div class="detail-layout">
 
-            <div class="detail-cover">
-                {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }} — წიგნის ყდა">
-                {% else %}
-                    <div class="cover-decoration {% if book.id|divisibleby:5 %}cover-tone-5{% elif book.id|divisibleby:4 %}cover-tone-4{% elif book.id|divisibleby:3 %}cover-tone-3{% elif book.id|divisibleby:2 %}cover-tone-2{% else %}cover-tone-1{% endif %}">
-                        <span class="cover-brand">წიგნიერი</span>
-                        <h3>{{ book.title }}</h3>
-                        <span class="cover-line"></span>
-                        <p>{% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% empty %}ავტორი უცნობია{% endfor %}</p>
+        <div class="detail-cover">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }} — წიგნის ყდა">
+            {% else %}
+                <div class="cover-decoration {% if book.id|divisibleby:5 %}cover-tone-5{% elif book.id|divisibleby:4 %}cover-tone-4{% elif book.id|divisibleby:3 %}cover-tone-3{% elif book.id|divisibleby:2 %}cover-tone-2{% else %}cover-tone-1{% endif %}">
+                    <span class="cover-brand">წიგნიერი</span>
+                    <h3>{{ book.title }}</h3>
+                    <span class="cover-line"></span>
+                    <p>{% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% empty %}ავტორი უცნობია{% endfor %}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="detail-body">
+            <h1>{{ book.title }}</h1>
+
+            <p class="book-author">
+                {% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% empty %}ავტორი უცნობია{% endfor %}
+            </p>
+
+            <dl class="meta-list">
+                {% if book.publisher %}
+                    <div><dt>გამომცემლობა</dt><dd>{{ book.publisher.name }}</dd></div>
+                {% endif %}
+
+                {% if book.publication_year %}
+                    <div><dt>გამოცემის წელი</dt><dd>{{ book.publication_year }}</dd></div>
+                {% endif %}
+
+                {% if book.pages %}
+                    <div><dt>გვერდები</dt><dd>{{ book.pages }}</dd></div>
+                {% endif %}
+
+                {% if book.categories.all %}
+                    <div>
+                        <dt>კატეგორია</dt>
+                        <dd>
+                            {% for category in book.categories.all %}
+                                <a href="{% url 'books:book_list' %}?category={{ category.id }}">{{ category.name }}</a>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </dd>
                     </div>
                 {% endif %}
-            </div>
+            </dl>
 
-            <div class="detail-body">
-                <h1>{{ book.title }}</h1>
-                <p class="book-author">
-                    {% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% empty %}ავტორი უცნობია{% endfor %}
-                </p>
+            {% if book.description %}
+                <div class="description">{{ book.description|linebreaks }}</div>
+            {% endif %}
 
-                <dl class="meta-list">
-                    {% if book.publisher %}<div><dt>გამომცემლობა</dt><dd>{{ book.publisher.name }}</dd></div>{% endif %}
-                    {% if book.publication_year %}<div><dt>გამოცემის წელი</dt><dd>{{ book.publication_year }}</dd></div>{% endif %}
-                    {% if book.pages %}<div><dt>გვერდები</dt><dd>{{ book.pages }}</dd></div>{% endif %}
-                    {% if book.categories.all %}
-                        <div><dt>კატეგორია</dt><dd>
-                            {% for category in book.categories.all %}<a href="{% url 'books:book_list' %}?category={{ category.id }}">{{ category.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
-                        </dd></div>
-                    {% endif %}
-                </dl>
+            <div class="book-rating-summary">
+                <strong>მკითხველების შეფასება:</strong>
 
-                {% if book.description %}
-                    <div class="description">{{ book.description|linebreaks }}</div>
+                {% if rating_count %}
+                    <span>★ {{ average_rating|floatformat:1 }} / 5</span>
+                    <span>({{ rating_count }} შეფასება)</span>
+                {% else %}
+                    <span>ჯერ შეფასება არ არის</span>
                 {% endif %}
             </div>
         </div>
+    </div>
 
-        <section class="offers">
-            <h2>შეთავაზებები და ფასების შედარება</h2>
+    <section class="offers">
+        <h2>შეთავაზებები და ფასების შედარება</h2>
 
-            {% if offers %}
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>გამყიდველი</th>
-                                <th>ფორმატი</th>
-                                <th>ფასი</th>
-                                <th>მარაგი</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for offer in offers %}
-                                <tr {% if offer.id == cheapest_id %}class="best-offer"{% endif %}>
-                                    <td>{{ offer.seller.name|default:"წიგნიერი" }}</td>
-                                    <td>
-                                        {{ offer.get_format_display }}
-                                    </td>
-                                    <td>
-                                        <strong>{{ offer.price }} ₾</strong>
-                                        {% if offer.id == cheapest_id %}<span class="tag">ყველაზე იაფი</span>{% endif %}
-                                    </td>
-                                    <td>
-                                        {% if offer.is_physical %}
-                                            {% if offer.stock > 0 %}{{ offer.stock }} ცალი{% else %}არ არის{% endif %}
-                                        {% else %}—{% endif %}
-                                    </td>
-                                    <td>
-                                        {% if offer.is_purchasable %}
-                                            {% if offer.format == 'digital' and not offer.ebook_file %}
-                                                <span class="unavailable">ფაილი ჯერ არ არის დამატებული</span>
-                                            {% else %}
+        {% if offers %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>გამყიდველი</th>
+                            <th>ფორმატი</th>
+                            <th>ფასი</th>
+                            <th>მარაგი</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for offer in offers %}
+                            <tr {% if offer.id == cheapest_id %}class="best-offer"{% endif %}>
+                                <td>{{ offer.seller.name|default:"წიგნიერი" }}</td>
+
+                                <td>{{ offer.get_format_display }}</td>
+
+                                <td>
+                                    <strong>{{ offer.price }} ₾</strong>
+                                    {% if offer.id == cheapest_id %}
+                                        <span class="tag">ყველაზე იაფი</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if offer.is_physical %}
+                                        {% if offer.stock > 0 %}
+                                            {{ offer.stock }} ცალი
+                                        {% else %}
+                                            არ არის
+                                        {% endif %}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if offer.is_purchasable %}
+                                        {% if offer.format == 'digital' and not offer.ebook_file %}
+                                            <span class="unavailable">ფაილი ჯერ არ არის დამატებული</span>
+                                        {% else %}
                                             <form method="post" action="{% url 'books:cart_add' offer.id %}" class="add-form">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="next" value="detail">
+
                                                 {% if offer.is_physical %}
                                                     <input type="number" name="quantity" value="1" min="1" max="{{ offer.stock }}" aria-label="რაოდენობა">
                                                 {% endif %}
+
                                                 <button type="submit" class="primary-button small">კალათაში</button>
                                             </form>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="unavailable">მიუწვდომელია</span>
                                         {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="unavailable">ამ წიგნზე შეთავაზება ჯერ არ არის.</p>
-            {% endif %}
-        </section>
+                                    {% else %}
+                                        <span class="unavailable">მიუწვდომელია</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="unavailable">ამ წიგნზე შეთავაზება ჯერ არ არის.</p>
+        {% endif %}
+    </section>
 
-    </main>
+    <!-- შეფასებები და კომენტარები -->
+    <section class="book-reviews">
+        <h2>მკითხველების შეფასებები და კომენტარები</h2>
+
+        <div class="reviews-summary">
+            {% if rating_count %}
+                <p>
+                    საშუალო შეფასება:
+                    <strong>★ {{ average_rating|floatformat:1 }} / 5</strong>
+                    — {{ rating_count }} შეფასება
+                </p>
+            {% else %}
+                <p>ამ წიგნს ჯერ შეფასება არ აქვს. იყავი პირველი!</p>
+            {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+            <div class="review-form">
+                {% if user_review %}
+                    <h3>შეცვალე შენი შეფასება ან კომენტარი</h3>
+                {% else %}
+                    <h3>დატოვე შენი შეფასება და კომენტარი</h3>
+                {% endif %}
+
+                <p>შეფასება და კომენტარი ორივე არასავალდებულოა.</p>
+
+                <form method="post" action="{% url 'books:book_review_save' book.id %}">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label>{{ review_form.rating.label }}</label>
+                        {{ review_form.rating }}
+                        {% for error in review_form.rating.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ review_form.comment.id_for_label }}">კომენტარი</label>
+                        {{ review_form.comment }}
+                        {% for error in review_form.comment.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="primary-button">
+                        {% if user_review %}შეფასების განახლება{% else %}შეფასების შენახვა{% endif %}
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <p>
+                შეფასების ან კომენტარის დასატოვებლად
+                <a href="{% url 'books:login' %}">შედით თქვენს ანგარიშში</a>.
+            </p>
+        {% endif %}
+
+        <div class="review-list">
+            <h3>მკითხველების კომენტარები</h3>
+
+            {% for review in reviews %}
+                <article class="review-item">
+                    <div class="review-header">
+                        <strong>{{ review.user.username }}</strong>
+
+                        <span class="review-date">
+                            {{ review.created_at|date:"d.m.Y" }}
+                        </span>
+                    </div>
+
+                    {% if review.rating %}
+                        <p class="review-stars">
+                            {% if review.rating >= 1 %}★{% endif %}{% if review.rating >= 2 %}★{% endif %}{% if review.rating >= 3 %}★{% endif %}{% if review.rating >= 4 %}★{% endif %}{% if review.rating >= 5 %}★{% endif %}
+                            <span>{{ review.rating }}/5</span>
+                        </p>
+                    {% endif %}
+
+                    {% if review.comment %}
+                        <div class="review-comment">
+                            {{ review.comment|linebreaks }}
+                        </div>
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                        {% if user == review.user or user.is_staff %}
+                            <form method="post" action="{% url 'books:book_review_delete' review.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="delete-button">
+                                    წაშლა
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </article>
+            {% empty %}
+                <p>კომენტარები ჯერ არ დამატებულა.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+</main>
 {% endblock %}

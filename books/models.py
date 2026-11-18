@@ -4,12 +4,17 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
-from django.core.validators import FileExtensionValidator, MinValueValidator
+from django.core.validators import (
+    FileExtensionValidator,
+    MinValueValidator,
+    MaxValueValidator,
+)
 
 
 # ავტორის მოდელი
 class Author(models.Model):
     name = models.CharField(max_length=150)
+
 
     def __str__(self):
         return self.name
@@ -340,3 +345,60 @@ class OrderItem(models.Model):
     @property
     def total_price(self):
         return self.unit_price * self.quantity
+
+
+# წიგნის შეფასება და კომენტარი
+class BookReview(models.Model):
+
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='წიგნი'
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='book_reviews',
+        verbose_name='მომხმარებელი'
+    )
+
+    rating = models.PositiveSmallIntegerField(
+    'შეფასება',
+    validators=[
+        MinValueValidator(1),
+        MaxValueValidator(5)
+    ],
+    blank=True,
+    null=True
+)
+
+    comment = models.TextField(
+        'კომენტარი',
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        'შექმნის თარიღი',
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        'განახლების თარიღი',
+        auto_now=True
+    )
+
+    class Meta:
+        verbose_name = 'წიგნის შეფასება'
+        verbose_name_plural = 'წიგნების შეფასებები'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['book', 'user'],
+                name='unique_user_book_review'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.book.title} - {self.rating}/5 - {self.user}'

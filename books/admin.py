@@ -7,6 +7,7 @@ from .models import (
     Category,
     Book,
     BookOffer,
+    BookReview,
     Cart,
     CartItem,
     Order,
@@ -67,6 +68,25 @@ class BookOfferAdmin(admin.ModelAdmin):
     search_fields = ('book__title',)
 
 
+@admin.register(BookReview)
+class BookReviewAdmin(admin.ModelAdmin):
+    list_display = (
+        'book',
+        'user',
+        'rating',
+        'created_at',
+        'updated_at',
+    )
+    list_filter = ('rating', 'created_at')
+    search_fields = (
+        'book__title',
+        'user__username',
+        'comment',
+    )
+    readonly_fields = ('created_at', 'updated_at')
+    date_hierarchy = 'created_at'
+
+
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0
@@ -98,7 +118,12 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__email')
     readonly_fields = ('created_at',)
     inlines = [OrderItemInline]
-    actions = ['mark_confirmed', 'mark_shipped', 'mark_completed', 'mark_cancelled']
+    actions = [
+        'mark_confirmed',
+        'mark_shipped',
+        'mark_completed',
+        'mark_cancelled',
+    ]
 
     @admin.action(description='სტატუსი: დადასტურებული')
     def mark_confirmed(self, request, queryset):

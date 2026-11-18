@@ -1,9 +1,12 @@
-# რეგისტრაციის ფორმა, პროფილის ფორმა და შეკვეთის ფორმა
+
+# რეგისტრაციის ფორმა, პროფილის ფორმა, შეკვეთის ფორმა და წიგნის შეფასება
 
 from django.utils.safestring import mark_safe
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
+
+from .models import BookReview
 
 User = get_user_model()
 
@@ -118,3 +121,43 @@ class CheckoutForm(forms.Form):
             )
 
         return phone
+
+
+class BookReviewForm(forms.ModelForm):
+    """წიგნის შეფასებისა და კომენტარის ფორმა."""
+
+    RATING_CHOICES = [
+        (5, '★★★★★'),
+        (4, '★★★★☆'),
+        (3, '★★★☆☆'),
+        (2, '★★☆☆☆'),
+        (1, '★☆☆☆☆'),
+    ]
+
+    rating = forms.ChoiceField(
+        label='შეაფასე წიგნი',
+        choices=[('', 'შეფასების გარეშე')] + RATING_CHOICES,
+        widget=forms.RadioSelect,
+        required=False,
+    )
+
+    comment = forms.CharField(
+        label='შენი კომენტარი',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 4,
+            'placeholder': 'გაგვიზიარე შენი შთაბეჭდილება ამ წიგნზე...',
+        }),
+    )
+
+    class Meta:
+        model = BookReview
+        fields = ('rating', 'comment')
+
+    def clean_rating(self):
+        rating = self.cleaned_data.get('rating')
+
+        if not rating:
+            return None
+
+        return int(rating)
